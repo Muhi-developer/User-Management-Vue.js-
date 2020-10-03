@@ -1,0 +1,254 @@
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Management</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css"
+        integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <script src="https://use.fontawesome.com/bc51314d5e.js"></script>
+    <style>
+        #overlay {
+            position: fixed;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(0, 0, 0, 0.7);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <div class="container-fluid">
+            <div class="row bg-dark">
+                <div class="col-lg-12">
+                    <p class="text-center text-light display-4 pt-2" style="font-size: 45px;">Admin Panel</p>
+                </div>
+            </div>
+        </div>
+        <div class="container">
+            <div class="row mt-3">
+                <div class="col-lg-6">
+                    <h3 class="text-info">Registered Users</h3>
+                </div>
+                <div class="col-lg-6">
+                    <button class="btn btn-info float-right" @click="showAddModal=true"><i class="fas fa-acorn"></i>&nbsp;&nbsp;Add New
+                        User</button>
+                </div>
+            </div>
+            <hr class="bg-info">
+            <div class="alert alert-danger" v-if="errorMsg">
+                {{errorMsg}}
+            </div>
+            <div class="alert alert-success" v-if="successMsg">
+                {{successMsg}}
+            </div>
+            <div class="row">
+                <div class="col-lg-12">
+                    <table class="table table-bordered table-striped">
+                        <thead>
+                            <tr class="text-center bg-info text-light">
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>Email</th>
+                                <th>Phone</th>
+                                <th>Edit</th>
+                                <th>Delete</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr class="text-center" v-for="user in users">
+                                <td>{{user.Id}}</td>
+                                <td>{{user.Name}}</td>
+                                <td>{{user.Email}}</td>
+                                <td>{{user.Phone}}</td>
+                                <td><a href="#" class="text-success" @click="showEditModal=true; selectUser(user);">Update</a></td>
+                                <td><a href="#" class="text-success" @click="showDeleteModal=true; selectUser(user);">Delete</a></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <!---Add new user Modal-->
+        <div id="overlay" v-if="showAddModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Add New User</h5>
+                        <button type="button" @click="showAddModal=false" class="close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <form action="#" method="POST">
+                            <div class="form-group">
+                                <input type="text" name="name" class="form-control form-control-lg" placeholder="Name" 
+                                v-model="newUser.name">
+                            </div>
+                            <div class="form-group">
+                                <input type="email" name="email" class="form-control form-control-lg"
+                                    placeholder="E-mail" v-model="newUser.email">
+                            </div>
+                            <div class="form-group">
+                                <input type="tel" name="Phone" class="form-control form-control-lg" placeholder="Phone"
+                                v-model="newUser.phone">
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-info btn-block btn-lg" @click="showAddModal=false; addUser();">Add User</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+          <!---Edit user Modal-->
+          <div id="overlay" v-if="showEditModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Edit User</h5>
+                        <button type="button" @click="showEditModal=false" class="close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <form action="#" method="POST">
+                            <div class="form-group">
+                                <input type="text" name="name" class="form-control form-control-lg" v-model="currentUser.Name">
+                            </div>
+                            <div class="form-group">
+                                <input type="email" name="email" class="form-control form-control-lg"
+                                v-model="currentUser.Email">
+                            </div>
+                            <div class="form-group">
+                                <input type="tel" name="phone" class="form-control form-control-lg" v-model="currentUser.Phone">
+                            </div>
+                            <div class="form-group">
+                                <button class="btn btn-info btn-block btn-lg" @click="showEditModal=false; updateUser();">Update User</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!---Delete user Modal-->
+        <div id="overlay" v-if="showDeleteModal">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Delete User</h5>
+                        <button type="button" @click="showDeleteModal=false" class="close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body p-4">
+                        <h4 class="text-danger">Are you Sure want to delete this user ?</h4>
+                        <h5>you are deleting "{{currentUser.Name}}"</h5>
+                        <hr>
+                        <button class="btn btn-danger btn-lg" @click="showDeleteModal=false; deleteUser();">Yes</button>
+                        &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                        <button class="btn btn-success btn-lg" @click="showDeleteModal=false">No</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.20.0/axios.min.js" integrity="sha512-quHCp3WbBNkwLfYUMd+KwBAgpVukJu5MncuQaWXgCrfgcxCJAq/fo+oqrRKOj+UKEmyMCG3tb8RB63W+EmrOBg==" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script>
+        var app = new Vue({
+            el: '#app',
+            data: {
+                errorMsg: "",
+                successMsg: "",
+                showAddModal: false,
+                showEditModal: false,
+                showDeleteModal: false,
+                users: [],
+                newUser: {name: "",email: "",phone: ""},
+                currentUser: {}
+            },
+            mounted : function(){
+                this.getAllUsers();
+            },
+            methods: {
+                getAllUsers(){
+                    axios.get("http://localhost/vue-crud/db_conn.php?action=read").then(function(response){
+                        if(response.data.error){
+                            app.errorMsg = response.data.message;
+                        }
+                        else{
+                            app.users = response.data.users;
+                        }
+                    });
+                 },
+                addUser(){
+                    var formData = app.toFormData(app.newUser);
+                    console.log(formData);
+                    axios.post("http://localhost/vue-crud/db_conn.php?action=create", formData).then(function
+                    (response){
+                        app.newUser = {name:"",email:"",phone:""};
+                        
+                        if(response.data.error){
+                            app.errorMsg = response.data.message;
+                        }
+                        else{
+                            app.successMsg = response.data.message;
+                            app.getAllUsers();
+                        }
+                    });
+                },
+                updateUser(){
+                    var formData = app.toFormData(app.currentUser);
+                    axios.post("http://localhost/vue-crud/db_conn.php?action=update", formData).then(function
+                    (response){  
+                        app.currentUser={user};
+                        if(response.data.error){
+                            app.errorMsg = response.data.message;
+                        }
+                        else{
+                            app.successMsg = response.data.message;
+                            //app.getAllUsers();
+                        }
+                    });
+                },
+                deleteUser(){
+                    var formData = app.toFormData(app.currentUser);
+                    axios.post("http://localhost/vue-crud/db_conn.php?action=delete", formData).then(function
+                    (response){
+                        app.currentUser = {user};
+                        
+                        if(response.data.error){
+                            app.errorMsg = response.data.message;
+                        }
+                        else{
+                            app.successMsg = response.data.message;
+                            app.getAllUsers();
+                        }
+                    });
+                },
+                toFormData(obj){
+                    var fd = new FormData();
+                    for(var i in obj){
+                        fd.append(i,obj[i]);
+                    }
+                    return fd;
+                },
+                selectUser(user){
+                    app.currentUser = user;
+                }
+                
+            }
+        });
+    </script>
+</body>
+
+</html>
